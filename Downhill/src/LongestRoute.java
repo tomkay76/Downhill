@@ -253,7 +253,7 @@ public class LongestRoute {
 		}
 		
 		if(col < (this.mapx - 1)) {
-			// if top row exists
+			// if right col exists
 			int newid = this.getId(row, col+1);
 			if(this.getNodeElevation(id) > this.getNodeElevation(newid)) 
 				result = true;
@@ -261,14 +261,14 @@ public class LongestRoute {
 		}
 		
 		if(row < (this.mapy-1)) {
-			// if top row exists
+			// if bottom row exists
 			int newid = this.getId(row+1, col);
 			if(this.getNodeElevation(id) > this.getNodeElevation(newid))
 				result = true;
 		}
 		
 		if(col > 0) {
-			// if top row exists
+			// if left col exists
 			int newid = this.getId(row, col-1);
 			if(this.getNodeElevation(id) > this.getNodeElevation(newid))
 				result = true;
