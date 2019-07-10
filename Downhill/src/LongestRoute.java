@@ -5,6 +5,7 @@ import java.util.Scanner;
 public class LongestRoute {
 
 	// 1. read map and stored elevation nodes in 2D array
+	// 
 	
 	private int[][] map = null; // map board
 	private int mapx = 0; // amount of map cols
@@ -13,22 +14,23 @@ public class LongestRoute {
 	public static void main(String[] args) throws IOException {
 		var n = new LongestRoute();
 		n.readMapFile();
+		System.out.println("\n------ Process Map Nodes -----");
+		n.procMapNodes();
 	}
 	
 	private void readMapFile() throws IOException {
 		
-		//System.out.println("Trying to read map file");
+		System.out.println("\n------ Reading Map File -----");
 		int currentval = 0;
 		int cnt = 0;
 		int icnt = 0;
-		Scanner input = new Scanner(new File("4x4.txt"));
-		//System.out.println("Scanner init");
+		Scanner input = new Scanner(new File("4x4.txt")); // init file scanner
 		
-		// iterate all integers in map file
 		while(input.hasNextInt()) {
 			cnt++;
 			currentval = input.nextInt();
 			if(cnt == 1) {
+				System.out.println("\n------ Set Map Dimensions -----");
 				// amount of rows
 				this.mapy = currentval;
 				System.out.println("Setting max y");
@@ -36,6 +38,7 @@ public class LongestRoute {
 				// amount of cols
 				this.mapx = currentval;
 				System.out.println("Setting max x");
+				System.out.println("\n------ Populate Map -----");
 				this.mapSet();
 			} else if (cnt > 2) {
 				// elevations
@@ -44,20 +47,17 @@ public class LongestRoute {
 			}
 			
 		}
-		System.out.println("Map populated");
-		input.close();
+
+		input.close(); // close scanner
 	}
 	
 	private void mapSet() {
 		// set array bounds for map
-		//System.out.println("Setting up Map");
 		this.map = new int[this.mapy][this.mapx];
 	}
 	
 	private void mapPopulate(int icnt, int currentval) {
 		// create map indices from elevation count
-		//int row = (int) Math.ceil((double) icnt / this.mapy) - 1;
-		//int col = icnt - ((row * this.mapx) + 1);
 		int row = this.getRowIndex(icnt);
 		int col = this.getColIndex(icnt);
 		
@@ -71,5 +71,16 @@ public class LongestRoute {
 	
 	private int getColIndex(int icnt) {
 		return icnt - ((this.getRowIndex(icnt) * this.mapx) + 1);
+	}
+	
+	private void procMapNodes() {
+		
+		for(int rows = 0; rows < this.map.length; rows++) {
+		    for(int columns = 0; columns < this.map[rows].length; columns++) {
+		    	System.out.print(this.map[rows][columns] + "\t" );
+		    }
+		    System.out.println();
+		}
+		
 	}
 }
