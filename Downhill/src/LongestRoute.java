@@ -5,8 +5,12 @@ import java.util.Scanner;
 
 public class LongestRoute {
 
-	// 1. read map and stored elevation nodes in 2D array
-	// 
+	// 1. read map and store elevation nodes in 2D array
+	// 2. process elevation nodes
+	// 3. check for downhill inclines in all directions 
+	// 4. begin routing from initial node in all directions until no further downhill inclines are available
+	// 5. compare current result with recorded results and replace if higher
+	
 	
 	private int[][] map = null; // map board
 	private int mapx = 0; // amount of map cols
@@ -19,31 +23,31 @@ public class LongestRoute {
 	public static void main(String[] args) throws IOException {
 		var n = new LongestRoute();
 		n.readMapFile();
-		System.out.println("\n------ Process Map Nodes -----");
+		//System.out.println("\n------ Process Map Nodes -----");
 		n.procMapNodes();
 	}
 	
 	private void readMapFile() throws IOException {
 		
-		System.out.println("\n------ Reading Map File -----");
+		//System.out.println("\n------ Reading Map File -----");
 		int currentval = 0;
 		int cnt = 0;
 		int icnt = 0;
-		Scanner input = new Scanner(new File("4x4.txt")); // init file scanner
+		Scanner input = new Scanner(new File("map.txt")); // init file scanner
 		
 		while(input.hasNextInt()) {
 			cnt++;
 			currentval = input.nextInt();
 			if(cnt == 1) {
-				System.out.println("\n------ Set Map Dimensions -----");
+				//System.out.println("\n------ Set Map Dimensions -----");
 				// amount of rows
 				this.mapy = currentval;
-				System.out.println("Setting max y");
+				//System.out.println("Setting max y");
 			} else if (cnt == 2) {	
 				// amount of cols
 				this.mapx = currentval;
-				System.out.println("Setting max x");
-				System.out.println("\n------ Populate Map -----");
+				//System.out.println("Setting max x");
+				//System.out.println("\n------ Populate Map -----");
 				this.mapSet();
 			} else if (cnt > 2) {
 				// elevations
@@ -67,7 +71,7 @@ public class LongestRoute {
 		int col = this.getColIndex(icnt);
 		
 		this.map[row][col] = currentval;
-		System.out.println("Val:" + currentval +" Coord: " + row + "-" + col);
+		//System.out.println("Val:" + currentval +" Coord: " + row + "-" + col);
 	}
 	
 	private int getRowIndex(int icnt) {
@@ -82,7 +86,7 @@ public class LongestRoute {
 		return (row * this.mapy) + col + 1;
 	}
 	
-	private int getElevationVal(int icnt) {
+	private int getNodeElevation(int icnt) {
 		return this.map[this.getRowIndex(icnt)][this.getColIndex(icnt)];
 	}
 	
@@ -96,22 +100,59 @@ public class LongestRoute {
 		    //System.out.println();
 		}
 		
+		System.out.println("Longest Route: " + this.longestRoute);
+		System.out.println("Longest Route Length: " + this.longestRouteLen);
+		System.out.println("Longest Route Incline: " + this.longestRouteInc);
 	}
 	
 	private void nodeRouting(int row, int col) { 
-		
-		int level = 0;
-		
-		this.routes.clear(); // clear all previous entries from arrayList
-		
-		System.out.println("\n------ Node Routes -----");
-		
-			
+					
 		if(hasIncline(this.getId(row, col))) {
 			this.getInclines(row, col);
+		}		
+		
+	}
+	
+	private void procRoutes(ArrayList<String> routes) {
+		int length = routes.size();
+		int index = length - 1;
+		int routeLen = 0;
+		int routeInc = 0;
+		String routeTot = null;
+		for(int i = index; i > 0; i--) {
+			//process the longest entries first
+			String route = routes.get(index);
+			String[] nodes = route.split("-");
+			int len = nodes.length;
+			int inc = this.getNodeElevation(Integer.parseInt(nodes[0])) - this.getNodeElevation(Integer.parseInt(nodes[len-1]));
+			
+			if(len > routeLen && inc > routeInc) {
+				routeLen = len;
+				routeInc = inc;
+				routeTot = this.nodeIndex2Elevation(nodes);
+			}
+			
 		}
 		
+		if(routeLen > this.longestRouteLen && routeInc > this.longestRouteInc) { 
+			this.longestRoute = routeTot;
+			this.longestRouteInc = routeInc;
+			this.longestRouteLen = routeLen;
+		}
+	}
+	
+	private String nodeIndex2Elevation(String[] nodes) {
+
+		StringBuffer sb = new StringBuffer();
 		
+		for(int i = 0; i < nodes.length; i++) {
+			int nodeId = Integer.parseInt(nodes[i]);
+			if(i > 0)
+				sb.append("-");
+			sb.append(this.getNodeElevation(nodeId));
+		}
+		
+		return sb.toString();
 	}
 	
 	private void getInclines(int row, int col) {
@@ -129,18 +170,18 @@ public class LongestRoute {
 			if(level == 0) {
 				nodeRoutes.add(Integer.toString(id));
 			} else {
+				
 				nodeRoutes.clear();
 				nodeRoutes = (ArrayList<String>) newRoutes.clone();
 			}
 			
 			boolean isNewNodes = false;
 			
-			//level++;
-			System.out.println("----- FOR START -----");
+			//System.out.println("----- FOR START -----");
 			for(String node : nodeRoutes) {
 				
 				int index = level + 1;
-				System.out.println("{"+node+"}");
+				//System.out.println("{"+node+"}");
 				String[] temp = node.split("-");
 				if(temp.length < index)
 					continue;
@@ -149,13 +190,11 @@ public class LongestRoute {
 				int nodeId = Integer.parseInt(temp[temp.length-1]);
 				int nodeRow = this.getRowIndex(nodeId);
 				int nodeCol = this.getColIndex(nodeId);
-				//System.out.println("L"+level);
-				//System.out.println("#"+nodeId);
 				
 				if(nodeRow > 0) {
 					// if top row exists
 					int newid = this.getId(nodeRow-1, nodeCol);
-					if(this.getElevationVal(nodeId) > this.getElevationVal(newid)) {
+					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
 						isNewNodes = true;
 						newRoutes.add(node + "-" + newid);
@@ -165,7 +204,7 @@ public class LongestRoute {
 				if(nodeCol < (this.mapx - 1)) {
 					// if top row exists
 					int newid = this.getId(nodeRow, nodeCol+1);
-					if(this.getElevationVal(nodeId) > this.getElevationVal(newid)) {
+					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
 						isNewNodes = true;
 						newRoutes.add(node + "-" + newid);
@@ -175,7 +214,7 @@ public class LongestRoute {
 				if(nodeRow < (this.mapy-1)) {
 					// if top row exists
 					int newid = this.getId(nodeRow+1, nodeCol);
-					if(this.getElevationVal(nodeId) > this.getElevationVal(newid)) {
+					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
 						isNewNodes = true;
 						newRoutes.add(node + "-" + newid);
@@ -185,7 +224,7 @@ public class LongestRoute {
 				if(nodeCol > 0) {
 					// if top row exists
 					int newid = this.getId(nodeRow, nodeCol-1);
-					if(this.getElevationVal(nodeId) > this.getElevationVal(newid)) {
+					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
 						isNewNodes = true;
 						newRoutes.add(node + "-" + newid);
@@ -194,10 +233,10 @@ public class LongestRoute {
 				
 				
 			}	// end FOR
-			System.out.println("----- FOR END -----");
-			System.out.println("isNewNodes: " + isNewNodes);
+			//System.out.println("----- FOR END -----");
 			
-			if(isNewNodes == false) {			
+			if(isNewNodes == false) {
+				this.procRoutes(nodeRoutes);
 				break;
 			} else {
 				level++;
@@ -206,10 +245,6 @@ public class LongestRoute {
 			
 		} // end WHILE	
 		
-		for(String op : nodeRoutes) {
-			System.out.print(op + "\t");
-		}
-		System.out.println();
 	}
 	
 	private boolean hasIncline(int id) {
@@ -221,14 +256,14 @@ public class LongestRoute {
 		if(row > 0) {
 			// if top row exists
 			int newid = this.getId(row-1, col);
-			if(this.getElevationVal(id) > this.getElevationVal(newid)) 
+			if(this.getNodeElevation(id) > this.getNodeElevation(newid)) 
 				result = true;
 		}
 		
 		if(col < (this.mapx - 1)) {
 			// if top row exists
 			int newid = this.getId(row, col+1);
-			if(this.getElevationVal(id) > this.getElevationVal(newid)) 
+			if(this.getNodeElevation(id) > this.getNodeElevation(newid)) 
 				result = true;
 			
 		}
@@ -236,14 +271,14 @@ public class LongestRoute {
 		if(row < (this.mapy-1)) {
 			// if top row exists
 			int newid = this.getId(row+1, col);
-			if(this.getElevationVal(id) > this.getElevationVal(newid))
+			if(this.getNodeElevation(id) > this.getNodeElevation(newid))
 				result = true;
 		}
 		
 		if(col > 0) {
 			// if top row exists
 			int newid = this.getId(row, col-1);
-			if(this.getElevationVal(id) > this.getElevationVal(newid))
+			if(this.getNodeElevation(id) > this.getNodeElevation(newid))
 				result = true;
 		}
 		
