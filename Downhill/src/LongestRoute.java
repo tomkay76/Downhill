@@ -114,7 +114,7 @@ public class LongestRoute {
 			int len = nodes.length;
 			int inc = this.getNodeElevation(Integer.parseInt(nodes[0])) - this.getNodeElevation(Integer.parseInt(nodes[len-1]));
 			
-			if(len > routeLen && inc > routeInc) {
+			if(len >= routeLen && inc > routeInc) {
 				routeLen = len;
 				routeInc = inc;
 				routeTot = this.nodeIndex2Elevation(nodes);
@@ -122,11 +122,11 @@ public class LongestRoute {
 			
 		}
 		
-		if(routeLen > this.longestRouteLen && routeInc > this.longestRouteInc) { 
+		if(routeLen >= this.longestRouteLen && routeInc > this.longestRouteInc) { 
 			this.longestRoute = routeTot;
 			this.longestRouteInc = routeInc;
 			this.longestRouteLen = routeLen;
-		}
+		} 
 	}
 	
 	private String nodeIndex2Elevation(String[] nodes) {
