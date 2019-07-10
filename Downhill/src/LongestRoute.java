@@ -193,7 +193,7 @@ public class LongestRoute {
 				} 
 				
 				if(nodeCol < (this.mapx - 1)) {
-					// if top row exists
+					// if right col exists
 					int newid = this.getId(nodeRow, nodeCol+1);
 					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
@@ -203,7 +203,7 @@ public class LongestRoute {
 				}
 				
 				if(nodeRow < (this.mapy-1)) {
-					// if top row exists
+					// if bottom row exists
 					int newid = this.getId(nodeRow+1, nodeCol);
 					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
@@ -213,7 +213,7 @@ public class LongestRoute {
 				}
 				
 				if(nodeCol > 0) {
-					// if top row exists
+					// if left col exists
 					int newid = this.getId(nodeRow, nodeCol-1);
 					if(this.getNodeElevation(nodeId) > this.getNodeElevation(newid)) {
 						// top adjacent has lower elevation -> routing
