@@ -18,46 +18,45 @@ public class LongestRoute {
 	private String longestRoute = null;
 	private int longestRouteLen = 0; // length
 	private int longestRouteInc = 0; // incline
-	private ArrayList<String> routes = new ArrayList<String>();
 	
 	public static void main(String[] args) throws IOException {
 		var n = new LongestRoute();
-		n.readMapFile();
-		//System.out.println("\n------ Process Map Nodes -----");
-		n.procMapNodes();
+		n.readMapFile(); // 1. get map data
+		n.procMapNodes(); // 2. - 5. 
+		n.getResult();		
 	}
 	
 	private void readMapFile() throws IOException {
 		
-		//System.out.println("\n------ Reading Map File -----");
-		int currentval = 0;
-		int cnt = 0;
-		int icnt = 0;
-		Scanner input = new Scanner(new File("map.txt")); // init file scanner
-		
-		while(input.hasNextInt()) {
-			cnt++;
-			currentval = input.nextInt();
-			if(cnt == 1) {
-				//System.out.println("\n------ Set Map Dimensions -----");
-				// amount of rows
-				this.mapy = currentval;
-				//System.out.println("Setting max y");
-			} else if (cnt == 2) {	
-				// amount of cols
-				this.mapx = currentval;
-				//System.out.println("Setting max x");
-				//System.out.println("\n------ Populate Map -----");
-				this.mapSet();
-			} else if (cnt > 2) {
-				// elevations
-				icnt++;
-				this.mapPopulate(icnt,currentval);
-			}
+		try {
+			int currentval = 0;
+			int cnt = 0;
+			int icnt = 0;
+			Scanner input = new Scanner(new File("4x4.txt")); // init file scanner
 			
-		}
+			while(input.hasNextInt()) {
+				cnt++;
+				currentval = input.nextInt();
+				if(cnt == 1) {
+					// amount of rows
+					this.mapy = currentval;
 
-		input.close(); // close scanner
+				} else if (cnt == 2) {	
+					// amount of cols
+					this.mapx = currentval;
+					this.mapSet(); // set bounds
+				} else if (cnt > 2) {
+					// elevations
+					icnt++;
+					this.mapPopulate(icnt,currentval);
+				}
+				
+			}
+
+			input.close(); // close scanner
+		} catch(IOException e) {
+			System.out.println("ERROR - reading file");
+		}
 	}
 	
 	private void mapSet() {
@@ -71,7 +70,6 @@ public class LongestRoute {
 		int col = this.getColIndex(icnt);
 		
 		this.map[row][col] = currentval;
-		//System.out.println("Val:" + currentval +" Coord: " + row + "-" + col);
 	}
 	
 	private int getRowIndex(int icnt) {
@@ -83,35 +81,25 @@ public class LongestRoute {
 	}
 	
 	private int getId(int row, int col) {
+		// create incremental id to address nodes
 		return (row * this.mapy) + col + 1;
 	}
 	
 	private int getNodeElevation(int icnt) {
+		// return node elevation value
 		return this.map[this.getRowIndex(icnt)][this.getColIndex(icnt)];
 	}
 	
 	private void procMapNodes() {
-		
+		// process all map nodes 
 		for(int rows = 0; rows < this.map.length; rows++) {
-		    for(int columns = 0; columns < this.map[rows].length; columns++) {
-		    	//System.out.print(this.map[rows][columns] + "\t" );
-		    	this.nodeRouting(rows, columns);
+		    for(int cols = 0; cols < this.map[rows].length; cols++) {
+		    	if(hasIncline(this.getId(rows, cols))) {
+					this.getInclines(rows, cols);
+				}
 		    }
-		    //System.out.println();
 		}
-		
-		System.out.println("Longest Route: " + this.longestRoute);
-		System.out.println("Longest Route Length: " + this.longestRouteLen);
-		System.out.println("Longest Route Incline: " + this.longestRouteInc);
-	}
-	
-	private void nodeRouting(int row, int col) { 
-					
-		if(hasIncline(this.getId(row, col))) {
-			this.getInclines(row, col);
-		}		
-		
-	}
+	}	
 	
 	private void procRoutes(ArrayList<String> routes) {
 		int length = routes.size();
@@ -156,37 +144,35 @@ public class LongestRoute {
 	}
 	
 	private void getInclines(int row, int col) {
-		int level = 0;
-		int id = this.getId(row, col);
+		int level = 0; // 0 => first (main) node of route
+		int id = this.getId(row, col); // id of first node
+		
+		// Two ArrayLists: first to iterate through, second to store updated routes
 		ArrayList<String> nodeRoutes = new ArrayList<String>();
 		ArrayList<String> newRoutes = new ArrayList<String>();
-		/*
-		if(level == 0) {
-			nodeRoutes.add(Integer.toString(id));
-		} 
-		*/
+
 		while(true) {
-			
+			// loop until the last route, which originated at current main node (id), reached its final node
 			if(level == 0) {
+				// push main node 
 				nodeRoutes.add(Integer.toString(id));
 			} else {
-				
+				// clear & update list for next iteration
 				nodeRoutes.clear();
-				nodeRoutes = (ArrayList<String>) newRoutes.clone();
+				nodeRoutes.addAll(newRoutes);
 			}
 			
 			boolean isNewNodes = false;
 			
-			//System.out.println("----- FOR START -----");
+			// start iterating through all current routes to find all new branches
 			for(String node : nodeRoutes) {
 				
 				int index = level + 1;
-				//System.out.println("{"+node+"}");
 				String[] temp = node.split("-");
 				if(temp.length < index)
-					continue;
+					continue; // current route already reached its final node, skip to next route
 				
-				//int nodeId = Integer.parseInt(temp[index]);
+				// get last node of route (id, row-index, col-index)
 				int nodeId = Integer.parseInt(temp[temp.length-1]);
 				int nodeRow = this.getRowIndex(nodeId);
 				int nodeCol = this.getColIndex(nodeId);
@@ -233,9 +219,9 @@ public class LongestRoute {
 				
 				
 			}	// end FOR
-			//System.out.println("----- FOR END -----");
 			
 			if(isNewNodes == false) {
+				// all routes of main node have reached their final node, process results and abort loop
 				this.procRoutes(nodeRoutes);
 				break;
 			} else {
@@ -248,6 +234,7 @@ public class LongestRoute {
 	}
 	
 	private boolean hasIncline(int id) {
+		// check whether current main node has any downhill inclines
 		boolean result = false;
 		
 		int row = this.getRowIndex(id);
@@ -283,5 +270,12 @@ public class LongestRoute {
 		}
 		
 		return result;
+	}
+	
+	private void getResult() {
+		// output result:
+		System.out.println("Longest Route: " + this.longestRoute);
+		System.out.println("Longest Route Length: " + this.longestRouteLen);
+		System.out.println("Longest Route Incline: " + this.longestRouteInc);
 	}
 }
