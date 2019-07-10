@@ -11,7 +11,7 @@ public class LongestRoute {
 	// 4. begin routing from initial node in all directions until no further downhill inclines are available
 	// 5. compare current result with recorded results and replace if higher
 	
-	
+	private String mapfile = "map.txt";
 	private int[][] map = null; // map board
 	private int mapx = 0; // amount of map cols
 	private int mapy = 0; // amount of map rows
@@ -32,7 +32,7 @@ public class LongestRoute {
 			int currentval = 0;
 			int cnt = 0;
 			int icnt = 0;
-			Scanner input = new Scanner(new File("4x4.txt")); // init file scanner
+			Scanner input = new Scanner(new File(this.mapfile)); // init file scanner
 			
 			while(input.hasNextInt()) {
 				cnt++;
@@ -138,6 +138,11 @@ public class LongestRoute {
 			if(i > 0)
 				sb.append("-");
 			sb.append(this.getNodeElevation(nodeId));
+			//sb.append("[");
+			//sb.append(this.getRowIndex(nodeId));
+			//sb.append("x");
+			//sb.append(this.getColIndex(nodeId));
+			//sb.append("]");
 		}
 		
 		return sb.toString();
